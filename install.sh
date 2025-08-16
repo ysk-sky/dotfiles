@@ -41,11 +41,25 @@ if [ -f "$DOTFILES_DIR/config.fish" ]; then
     ln -sf "$DOTFILES_DIR/config.fish" "$fish_config_dir/config.fish"
 fi
 
+# Homebrewがインストールされているかチェック
+if command -v brew >/dev/null 2>&1; then
+    echo ""
+    echo "Homebrewが見つかりました。パッケージをインストールしています..."
+    
+    # Brewfileが存在する場合、bundle installを実行
+    if [ -f "$DOTFILES_DIR/.Brewfile" ]; then
+        echo "Brewfileからパッケージをインストールしています..."
+        brew bundle install --file="$DOTFILES_DIR/.Brewfile"
+    else
+        echo "Brewfileが見つかりません。手動でパッケージをインストールしてください。"
+    fi
+else
+    echo ""
+    echo "Homebrewがインストールされていません。"
+    echo "まずHomebrewをインストールしてから、以下のコマンドでパッケージをインストールしてください:"
+    echo "  brew bundle install --file=\"$DOTFILES_DIR/.Brewfile\""
+fi
+
 echo ""
 echo "dotfiles のインストールが完了しました！"
 echo "バックアップは $BACKUP_DIR に保存されています"
-echo ""
-echo "推奨: 以下のツールがインストールされていない場合は手動でインストールしてください:"
-echo "  - fish shell: brew install fish"
-echo "  - eza (ls replacement): brew install eza"
-echo "  - htop: brew install htop"
