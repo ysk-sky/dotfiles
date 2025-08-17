@@ -36,6 +36,7 @@ alias gd='git diff'
 alias glog="git log --graph --date=iso --pretty='[%ad]%C(auto) %h%d %Cgreen%an%Creset : %s'"
 alias gll="git log --pretty=format:'%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]' --decorate --numstat"
 
+alias pip='uv pip'
 
 # function fish_user_key_bindings
 #   bind \cr 'peco_select_history (commandline -b)' # Bind for prco history to Ctrl+r
