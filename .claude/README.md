@@ -118,6 +118,11 @@ chmod +x install.sh uninstall.sh
 2. ファイルの権限が適切に設定されているか確認
 3. 必要に応じて、Claude AIを再起動
 
+## 参考リンク
+
+* [社内で「え、そんなことできるの？」と話題になった Claude Code Custom slash commands の実践活用](https://zenn.dev/hacobu/articles/d4a194b95aacd5) - Hacobuテックブログ
+* [Claude Codeを10倍賢くする無料ツール「Serena」の威力とトークン効率化術](https://zenn.dev/sc30gsw/articles/ff81891959aaef) - Zenn
+
 ## ライセンス
 
 この設定ファイルは、個人的な使用目的で作成されています。
