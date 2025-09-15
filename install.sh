@@ -60,6 +60,21 @@ else
     echo "  brew bundle install --file=\"$DOTFILES_DIR/.Brewfile\""
 fi
 
+# NeoBundleとプラグインのインストール
+if [ -f "$HOME/.vimrc" ]; then
+    echo ""
+    echo "Vimプラグインをインストールしています..."
+    # NeoBundle ディレクトリを作成
+    mkdir -p "$HOME/.vim/bundle"
+    # NeoBundleをクローン
+    if [ ! -d "$HOME/.vim/bundle/neobundle.vim" ]; then
+        git clone https://github.com/Shougo/neobundle.vim.git "$HOME/.vim/bundle/neobundle.vim"
+    fi
+    # Vimを起動してNeoBundleInstallを実行
+    vim +NeoBundleInstall +qall
+    echo "Vimプラグインのインストールが完了しました。"
+fi
+
 echo ""
 echo "dotfiles のインストールが完了しました！"
 echo "バックアップは $BACKUP_DIR に保存されています"
