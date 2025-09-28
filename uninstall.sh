@@ -47,6 +47,19 @@ if [ -L "$fish_config" ]; then
     fi
 fi
 
+# otp.fishの特別な処理
+otp_fish="$HOME/.config/fish/functions/otp.fish"
+if [ -L "$otp_fish" ]; then
+    echo "otp.fishのシンボリックリンクを削除しています..."
+    rm "$otp_fish"
+
+    # バックアップから復元
+    if [ -n "$BACKUP_DIR" ] && [ -f "$BACKUP_DIR/otp.fish" ]; then
+        echo "otp.fishをバックアップから復元しています..."
+        mv "$BACKUP_DIR/otp.fish" "$otp_fish"
+    fi
+fi
+
 # 空になったバックアップディレクトリを削除
 if [ -n "$BACKUP_DIR" ] && [ -d "$BACKUP_DIR" ]; then
     if [ -z "$(ls -A "$BACKUP_DIR")" ]; then

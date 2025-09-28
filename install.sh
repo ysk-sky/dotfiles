@@ -41,6 +41,20 @@ if [ -f "$DOTFILES_DIR/config.fish" ]; then
     ln -sf "$DOTFILES_DIR/config.fish" "$fish_config_dir/config.fish"
 fi
 
+# otp.fishのシンボリックリンクを作成
+if [ -f "$DOTFILES_DIR/otp.fish" ]; then
+    fish_functions_dir="$HOME/.config/fish/functions"
+    mkdir -p "$fish_functions_dir"
+
+    if [ -f "$fish_functions_dir/otp.fish" ] && [ ! -L "$fish_functions_dir/otp.fish" ]; then
+        echo "既存の otp.fish をバックアップしています..."
+        mv "$fish_functions_dir/otp.fish" "$BACKUP_DIR/"
+    fi
+
+    echo "otp.fish をリンクしています..."
+    ln -sf "$DOTFILES_DIR/otp.fish" "$fish_functions_dir/otp.fish"
+fi
+
 # Homebrewがインストールされているかチェック
 if command -v brew >/dev/null 2>&1; then
     echo ""
