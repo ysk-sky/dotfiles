@@ -1,4 +1,9 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -11,44 +16,84 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(echo:*)",
-      "Bash(do)",
-      "Bash(then)",
-      "Bash(else)",
-      "Bash(fi)",
-      "Bash(done)",
-      "Bash(for:*)",
       "Bash(npm install:*)",
       "Bash(npm run dev:*)",
       "Bash(npm run build:*)",
       "Bash(npm run tsc:*)",
-      "Bash(npm exec:*)",
-      "Bash(npx:*)",
       "Bash(npm run test:*)",
-      "Bash(npm run lint)",
       "Bash(npm run lint:*)",
       "Bash(npm run format:*)",
-      "Bash(npm ls:*)",
-      "Bash(curl:*)",
-      "Bash(pkill:*)",
-      "Bash(true)"
+      "Bash(npm ls:*)"
     ],
     "deny": [
       "Bash(sudo:*)",
       "Bash(git reset:*)",
       "Bash(git rebase:*)",
-      "Read(.env:*)",
-      "Read(id_rsa)",
-      "Read(id_ed25519)",
-      "Read(**/*token*)",
-      "Read(**/*key*)",
-      "Write(.env:*)",
-      "Write(**/secrets/**)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git clean:*)",
+      "Bash(rm -rf:*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/id_ecdsa)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(**/.token*)",
+      "Read(**/*token*.json)",
+      "Read(**/*_rsa)",
+      "Read(**/*.pem)",
+      "Read(**/*service*account*.json)",
+      "Read(**/*-key.json)",
+      "Read(**/*_key.json)",
+      "Edit(**/secrets/**)",
       "Bash(wget:*)"
-    ]
+    ],
+    "ask": [
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(npx:*)",
+      "Bash(npm exec:*)"
+    ],
+    "defaultMode": "auto"
   },
-    "statusLine": {
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "denyRead": [
+        "~/**/.env",
+        "~/**/.env.*"
+      ]
+    },
+    "credentials": {
+      "files": [
+        { "path": "~/.ssh", "mode": "deny" },
+        { "path": "~/.aws", "mode": "deny" }
+      ]
+    }
+  },
+  "model": "sonnet",
+  "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.js"
-  }
+  },
+  "enabledPlugins": {
+    "hookify@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "claude-mem@thedotmack": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "thedotmack": {
+      "source": {
+        "source": "github",
+        "repo": "thedotmack/claude-mem"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "tui": "fullscreen",
+  "agentPushNotifEnabled": true
 }
-
