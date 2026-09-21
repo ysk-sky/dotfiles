@@ -1,0 +1,10 @@
+# install.sh / uninstall.sh が ~/.claude に配置・削除するファイル（.claude からの相対パス）
+# ここに無いファイル（README.md など）は配布しない。
+CLAUDE.md
+settings.json
+statusline.js
+agents/serena.md
+commands/dependabot-check.md
+commands/pr.md
+commands/serena.md
+commands/ui-advice.md

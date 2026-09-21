@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # .claude アンインストールスクリプト
-# ホームディレクトリから.claude設定を削除
+# managed-files.txt に列挙したファイルだけを ~/.claude から削除する。
+# ~/.claude ディレクトリ自体は削除しない
+# （会話履歴・プラグイン・settings.local.json などのローカル状態を保持するため）。
 
-set -e
+set -euo pipefail
 
 # 色付きの出力用関数
 print_info() {
@@ -22,23 +24,32 @@ print_error() {
     echo -e "\033[1;31m[ERROR]\033[0m $1"
 }
 
-# ホームディレクトリの.claudeパス
+CLAUDE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOME_CLAUDE_DIR="$HOME/.claude"
+BACKUP_DIR="$HOME/.claude.backup.$(date +%Y%m%d_%H%M%S)"
+MANIFEST="$CLAUDE_DIR/managed-files.txt"
+
+if [ ! -f "$MANIFEST" ]; then
+    print_error "$MANIFEST が見つかりません"
+    exit 1
+fi
 
 print_info "Claude AI設定ファイルのアンインストールを開始します..."
-print_info "削除対象: $HOME_CLAUDE_DIR"
 
-# ホームディレクトリに.claudeディレクトリが存在するかチェック
-if [ ! -d "$HOME_CLAUDE_DIR" ]; then
-    print_warning "$HOME_CLAUDE_DIR ディレクトリが見つかりません"
-    print_info "アンインストールは不要です"
+# 実際に存在する管理対象ファイルだけを削除対象にする
+targets=()
+while IFS= read -r rel || [ -n "$rel" ]; do
+    [[ -z "$rel" || "$rel" == \#* ]] && continue
+    [ -f "$HOME_CLAUDE_DIR/$rel" ] && targets+=("$rel")
+done < "$MANIFEST"
+
+if [ ${#targets[@]} -eq 0 ]; then
+    print_info "削除対象のファイルはありません"
     exit 0
 fi
 
-# 削除前の確認
-print_warning "以下のディレクトリとファイルが削除されます:"
-echo
-ls -la "$HOME_CLAUDE_DIR"
+print_warning "以下のファイルが $HOME_CLAUDE_DIR から削除されます:"
+printf '  %s\n' "${targets[@]}"
 echo
 read -p "本当に削除しますか？ (y/N): " -n 1 -r
 echo
@@ -47,22 +58,19 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# バックアップの作成（念のため）
-BACKUP_DIR="$HOME/.claude.backup.$(date +%Y%m%d_%H%M%S)"
-print_info "安全のため、$BACKUP_DIR にバックアップを作成します"
-cp -r "$HOME_CLAUDE_DIR" "$BACKUP_DIR"
-print_success "バックアップ完了: $BACKUP_DIR"
+for rel in "${targets[@]}"; do
+    mkdir -p "$(dirname "$BACKUP_DIR/$rel")"
+    cp -p "$HOME_CLAUDE_DIR/$rel" "$BACKUP_DIR/$rel"
+    rm -f "$HOME_CLAUDE_DIR/$rel"
 
-# ファイルの削除
-print_info "ファイルを削除中..."
-rm -rf "$HOME_CLAUDE_DIR"
-print_success "ファイルの削除が完了しました"
+    # 空になったサブディレクトリ（agents/ など）だけ片付ける
+    dir="$(dirname "$HOME_CLAUDE_DIR/$rel")"
+    [ "$dir" != "$HOME_CLAUDE_DIR" ] && rmdir "$dir" 2>/dev/null || true
+done
 
 print_success "アンインストールが完了しました！"
 echo
 print_info "注意:"
-echo "  1. バックアップは $BACKUP_DIR に保存されています"
-echo "  2. 必要に応じて、バックアップから特定のファイルを復元できます"
-echo "  3. 完全に削除したい場合は、手動でバックアップディレクトリも削除してください"
-echo
-print_info "バックアップ場所: $BACKUP_DIR"
+echo "  1. 削除したファイルのバックアップは $BACKUP_DIR にあります"
+echo "  2. 履歴・プラグイン・settings.local.json など、管理対象外のファイルは残っています"
+echo "  3. バックアップが不要になったら、手動で削除してください"
