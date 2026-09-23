@@ -78,7 +78,7 @@ set -gx AWS_DEFAULT_PROFILE dev
 # pyenv
 set -gx PYENV_ROOT $HOME/.pyenv
 fish_add_path $PYENV_ROOT/bin
-pyenv init - | source
+pyenv init - fish | source
 
 # fzf (peco から移行)
 set -gx GHQ_SELECTOR fzf
