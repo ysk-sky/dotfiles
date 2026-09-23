@@ -1,128 +1,63 @@
-# .claude 共通設定インストーラー
+# .claude 共通設定
 
-このディレクトリには、Claude AIの設定ファイルとコマンドが含まれており、すべてのプロジェクトで共通設定として使用できるように設計されています。
+Claude Code のユーザー設定（`~/.claude`）のうち、全プロジェクト共通で使うものを管理するディレクトリです。
+`managed-files.txt` に列挙したファイルだけを `~/.claude` にコピーします。会話履歴・プラグイン・`settings.local.json` などのローカル状態には触れません。
 
 ## ファイル構成
 
 ```
 .claude/
-├── CLAUDE.md          # Claude AIの設定ドキュメント
-├── settings.json      # 基本設定ファイル
-├── statusline.js      # ステータスラインコンポーネント
-├── agents/            # AIエージェント設定
-│   └── serena.md      # Serenaエージェント設定
-├── commands/          # コマンド設定
-│   ├── dependabot-check.md  # Dependabotチェックコマンド
-│   ├── pr.md                # PR関連コマンド
-│   ├── serena.md            # Serenaコマンド
-│   └── ui-advice.md         # UIアドバイスコマンド
-├── install.sh         # インストールスクリプト
-├── uninstall.sh       # アンインストールスクリプト
-└── README.md          # このファイル
+├── CLAUDE.md              # 全プロジェクト共通の指示（日本語出力・TDD・コミット承認など）
+├── settings.json          # permissions / sandbox / model / effortLevel などの設定
+├── statusline.js          # ステータスライン表示スクリプト
+├── agents/
+│   └── serena.md          # serena-expert サブエージェント（Serena MCP で実装を進める）
+├── commands/
+│   ├── dependabot-check.md  # /dependabot-check: Dependabot アラートの解決方針を分析
+│   ├── pr.md                # /pr: PR 本文を生成し、承認後に作成・更新
+│   ├── serena.md            # /serena: Serena MCP を使った開発タスク
+│   └── ui-advice.md         # /ui-advice: UI パターン提案とテキストワイヤーフレーム
+├── managed-files.txt      # install.sh / uninstall.sh が扱うファイルの一覧
+├── install.sh             # ~/.claude へのインストール
+├── uninstall.sh           # ~/.claude からの削除
+├── superclaude-summary.md # SuperClaude の調査メモ（配布対象外）
+└── README.md              # このファイル（配布対象外）
 ```
 
-## インストール方法
+## 設定方針（Claude Opus 5.5 前提）
 
-### 1. インストールスクリプトの実行
+- `model` は `opus` エイリアスで、現行の Opus（Opus 5.5）を使います。
+- `effortLevel` は `medium` にしています。Opus 5.5 は同じ effort でも以前の Opus より多く考えるため、API の既定値と同じ `medium` から始め、難しいタスクだけ `/effort` で `high` 以上に上げます。
+- `CLAUDE.md`・エージェント・コマンドには、モデルが言われなくてもできる一般論や「N 回考える」といった思考量の指定を書きません。長く細かい指示は思考コストを増やし、かえって品質を下げるためです。守ってほしいルールだけを、理由と一緒に書きます。
+- コミットや PR への Claude の署名は、`settings.json` の `attribution` を空にしたうえで `CLAUDE.md` でも禁止しています。
+
+## インストール
 
 ```bash
-# インストールスクリプトに実行権限を付与
-chmod +x install.sh
-
-# インストールを実行
-./install.sh
+./install.sh --dry-run   # 変更内容だけを表示
+./install.sh             # ~/.claude に反映
 ```
 
-インストールスクリプトは以下の処理を行います：
+- `managed-files.txt` のファイルだけを `~/.claude` にコピーします（`statusline.js` は実行権限付き）。
+- 内容が変わるファイルだけを、上書き前に `~/.claude.backup.<日時>/` に退避します。
+- 設定を変更するときは、このディレクトリで編集してから `install.sh` を再実行します。`~/.claude` 側を直接編集すると、次のインストールで上書きされます。
+- 新しいファイルを配布対象にするときは、`managed-files.txt` に追記します。
 
-- ホームディレクトリ（`~/.claude`）に設定ファイルをコピー
-- 既存の設定がある場合は、タイムスタンプ付きでバックアップを作成
-- 適切なファイル権限を設定
-- インストール結果の確認と表示
-
-### 2. 手動インストール
-
-```bash
-# ホームディレクトリに.claudeディレクトリを作成
-mkdir -p ~/.claude
-
-# ファイルをコピー
-cp -r .claude/* ~/.claude/
-```
-
-## 使用方法
-
-### 共通設定として使用
-
-インストール後、新しいプロジェクトでClaude AIを使用する際は、`~/.claude`の設定が自動的に使用されます。
-
-### プロジェクト固有の設定
-
-個別のプロジェクトで設定を上書きしたい場合は、プロジェクト内に`.claude`ディレクトリを作成してください。プロジェクト固有の設定が優先されます。
-
-### 設定の更新
-
-設定を更新する場合は、このディレクトリでファイルを編集した後、`install.sh`を再実行してください。
+反映した設定は、次に起動した Claude Code のセッションから有効になります。
 
 ## アンインストール
 
-### アンインストールスクリプトの実行
-
 ```bash
-# アンインストールスクリプトに実行権限を付与
-chmod +x uninstall.sh
-
-# アンインストールを実行
 ./uninstall.sh
 ```
 
-アンインストールスクリプトは以下の処理を行います：
+`managed-files.txt` のファイルだけを、確認プロンプトのあとで `~/.claude` から削除します。削除前のファイルは `~/.claude.backup.<日時>/` に退避され、`~/.claude` ディレクトリ自体と管理対象外のファイルは残ります。
 
-- 削除前の確認プロンプト
-- 安全のため、タイムスタンプ付きでバックアップを作成
-- `~/.claude`ディレクトリの削除
+## プロジェクト固有の設定
 
-### 手動アンインストール
-
-```bash
-# バックアップを作成（推奨）
-cp -r ~/.claude ~/.claude.backup.$(date +%Y%m%d_%H%M%S)
-
-# ディレクトリを削除
-rm -rf ~/.claude
-```
-
-## 注意事項
-
-- インストール前に既存の設定がある場合は、必ずバックアップが作成されます
-- アンインストール時も安全のため、バックアップが作成されます
-- 設定ファイルの編集は、このリポジトリ内で行い、`install.sh`で反映してください
-- 個別のプロジェクトで設定を変更したい場合は、プロジェクト固有の`.claude`ディレクトリを使用してください
-
-## トラブルシューティング
-
-### 権限エラーが発生する場合
-
-```bash
-# スクリプトに実行権限を付与
-chmod +x install.sh uninstall.sh
-```
-
-### 既存の設定がある場合
-
-インストール時に既存の設定がある場合は、バックアップを作成してから上書きするか、インストールをキャンセルするかを選択できます。
-
-### 設定が反映されない場合
-
-1. `~/.claude`ディレクトリが正しく作成されているか確認
-2. ファイルの権限が適切に設定されているか確認
-3. 必要に応じて、Claude AIを再起動
+プロジェクトごとに設定を変えたい場合は、そのプロジェクトの `.claude/` や `CLAUDE.md` に書きます。プロジェクト側の設定がユーザー設定より優先されます。
 
 ## 参考リンク
 
 * [社内で「え、そんなことできるの？」と話題になった Claude Code Custom slash commands の実践活用](https://zenn.dev/hacobu/articles/d4a194b95aacd5) - Hacobuテックブログ
 * [Claude Codeを10倍賢くする無料ツール「Serena」の威力とトークン効率化術](https://zenn.dev/sc30gsw/articles/ff81891959aaef) - Zenn
-
-## ライセンス
-
-この設定ファイルは、個人的な使用目的で作成されています。
