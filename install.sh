@@ -7,52 +7,46 @@ DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOME_DIR="$HOME"
 BACKUP_DIR="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
 
-# バックアップディレクトリを作成
+# 既存ファイルの退避先（何も退避しなければ最後に削除する）
 mkdir -p "$BACKUP_DIR"
-echo "既存設定のバックアップを $BACKUP_DIR に作成しました"
 
-# dotfilesディレクトリ内の隠しファイルを検索してリンクを作成
-for file in $(find "$DOTFILES_DIR" -name '.*' ! -name '.git*' ! -name '.' ! -name '..' -type f); do
-    filename=$(basename "$file")
-    target="$HOME_DIR/$filename"
-    
-    # 既存ファイルがある場合はバックアップ
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-        echo "既存の $filename をバックアップしています..."
-        mv "$target" "$BACKUP_DIR/"
+# リポジトリのファイルを dest にコピーする。
+# リポジトリは後で削除する前提なので、シンボリックリンクではなく実ファイルとして置く。
+# 既存のファイル（旧版が張ったシンボリックリンクを含む）は退避する。mv はリンク先をたどらないので、
+# リンク経由でリポジトリのファイルを上書きすることはない。
+copy_from_repo() {
+    local src="$1" dest="$2"
+    mkdir -p "$(dirname "$dest")"
+    if [ -e "$dest" ] || [ -L "$dest" ]; then
+        if [ ! -L "$dest" ] && cmp -s "$src" "$dest"; then
+            echo "変更なし: $dest"
+            return
+        fi
+        echo "既存の $dest をバックアップしています..."
+        mv "$dest" "$BACKUP_DIR/"
     fi
-    
-    # シンボリックリンクを作成
-    echo "リンクを作成: $filename"
-    ln -sf "$file" "$target"
+    cp "$src" "$dest"
+    echo "コピー: $dest"
+}
+
+# リポジトリ直下のドットファイル（.vimrc など）をホームにコピー
+for file in $(find "$DOTFILES_DIR" -maxdepth 1 -name '.*' ! -name '.git*' ! -name '.' ! -name '..' -type f); do
+    copy_from_repo "$file" "$HOME_DIR/$(basename "$file")"
 done
 
-# fish設定ファイルの特別な処理
-if [ -f "$DOTFILES_DIR/config.fish" ]; then
-    fish_config_dir="$HOME/.config/fish"
-    mkdir -p "$fish_config_dir"
-    
-    if [ -f "$fish_config_dir/config.fish" ] && [ ! -L "$fish_config_dir/config.fish" ]; then
-        echo "既存の fish config.fish をバックアップしています..."
-        mv "$fish_config_dir/config.fish" "$BACKUP_DIR/"
-    fi
-    
-    echo "fish設定ファイルをリンクしています..."
-    ln -sf "$DOTFILES_DIR/config.fish" "$fish_config_dir/config.fish"
-fi
+# fish
+FISH_CONFIG_DIR="$HOME/.config/fish"
+copy_from_repo "$DOTFILES_DIR/config.fish" "$FISH_CONFIG_DIR/config.fish"
+copy_from_repo "$DOTFILES_DIR/fish_plugins" "$FISH_CONFIG_DIR/fish_plugins"
 
-# otp.fishのシンボリックリンクを作成
-if [ -f "$DOTFILES_DIR/otp.fish" ]; then
-    fish_functions_dir="$HOME/.config/fish/functions"
-    mkdir -p "$fish_functions_dir"
-
-    if [ -f "$fish_functions_dir/otp.fish" ] && [ ! -L "$fish_functions_dir/otp.fish" ]; then
-        echo "既存の otp.fish をバックアップしています..."
-        mv "$fish_functions_dir/otp.fish" "$BACKUP_DIR/"
-    fi
-
-    echo "otp.fish をリンクしています..."
-    ln -sf "$DOTFILES_DIR/otp.fish" "$fish_functions_dir/otp.fish"
+# otp.fish はシークレットを書き込んで使うテンプレートなので、書き込み済みのものを上書きしないよう初回だけコピーする
+otp_dest="$FISH_CONFIG_DIR/functions/otp.fish"
+if [ -e "$otp_dest" ]; then
+    echo "otp.fish は既に存在するため変更しません: $otp_dest"
+else
+    mkdir -p "$(dirname "$otp_dest")"
+    cp "$DOTFILES_DIR/otp.fish" "$otp_dest"
+    echo "otp.fish をコピーしました。シークレットを $otp_dest に設定してください"
 fi
 
 # Homebrewがインストールされているかチェック
@@ -74,6 +68,19 @@ else
     echo "  brew bundle install --file=\"$DOTFILES_DIR/.Brewfile\""
 fi
 
+# fisher で fish_plugins のプラグインを入れる（fish は Brewfile で入るので brew bundle の後に行う）
+if command -v fish >/dev/null 2>&1; then
+    echo ""
+    echo "fisher で fish プラグインをインストールしています..."
+    # fisher 未導入の新環境では、公式のインストール手順どおり fisher 本体を読み込んでから update する
+    if ! fish -c 'functions -q fisher; or curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source; and fisher update'; then
+        echo "警告: fish プラグインのインストールに失敗しました。fish で 'fisher update' を実行してください"
+    fi
+else
+    echo ""
+    echo "fish が見つからないため、fish プラグインのインストールをスキップしました"
+fi
+
 # NeoBundleとプラグインのインストール
 if [ -f "$HOME/.vimrc" ]; then
     echo ""
@@ -91,4 +98,9 @@ fi
 
 echo ""
 echo "dotfiles のインストールが完了しました！"
-echo "バックアップは $BACKUP_DIR に保存されています"
+# 退避したファイルが無ければ空のバックアップディレクトリは残さない（uninstall.sh が最新のバックアップを参照するため）
+if rmdir "$BACKUP_DIR" 2>/dev/null; then
+    echo "退避したファイルはありません"
+else
+    echo "バックアップは $BACKUP_DIR に保存されています"
+fi

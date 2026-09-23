@@ -11,54 +11,39 @@ BACKUP_DIR=$(find "$HOME" -maxdepth 1 -name '.dotfiles_backup_*' -type d | sort 
 
 if [ -z "$BACKUP_DIR" ]; then
     echo "警告: バックアップディレクトリが見つかりません"
-    echo "シンボリックリンクのみ削除します"
+    echo "インストールしたファイルの削除のみ行います"
 else
     echo "バックアップディレクトリ: $BACKUP_DIR"
 fi
 
-# dotfilesディレクトリ内の隠しファイルに対応するシンボリックリンクを削除
-for file in $(find "$DOTFILES_DIR" -name '.*' ! -name '.git*' ! -name '.' ! -name '..' -type f); do
-    filename=$(basename "$file")
-    target="$HOME_DIR/$filename"
-    
-    # シンボリックリンクの場合のみ削除
-    if [ -L "$target" ]; then
-        echo "シンボリックリンクを削除: $filename"
+# install.sh がコピーしたファイルを削除し、バックアップから復元する。
+# インストール後に手元で編集したファイルは消さずに残す（編集内容を失わないため）。
+# 旧版の install.sh が張ったシンボリックリンクも削除対象にする。
+remove_installed() {
+    local src="$1" target="$2"
+    local name
+    name="$(basename "$target")"
+    if [ -L "$target" ] || { [ -f "$target" ] && cmp -s "$src" "$target"; }; then
+        echo "削除: $target"
         rm "$target"
-        
-        # バックアップから復元
-        if [ -n "$BACKUP_DIR" ] && [ -f "$BACKUP_DIR/$filename" ]; then
-            echo "バックアップから復元: $filename"
-            mv "$BACKUP_DIR/$filename" "$target"
+        if [ -n "$BACKUP_DIR" ] && [ -e "$BACKUP_DIR/$name" ]; then
+            echo "バックアップから復元: $target"
+            mv "$BACKUP_DIR/$name" "$target"
         fi
+    elif [ -e "$target" ]; then
+        echo "インストール後に変更されているため残します: $target"
     fi
+}
+
+for file in $(find "$DOTFILES_DIR" -maxdepth 1 -name '.*' ! -name '.git*' ! -name '.' ! -name '..' -type f); do
+    remove_installed "$file" "$HOME_DIR/$(basename "$file")"
 done
 
-# fish設定ファイルの特別な処理
-fish_config="$HOME/.config/fish/config.fish"
-if [ -L "$fish_config" ]; then
-    echo "fish設定ファイルのシンボリックリンクを削除しています..."
-    rm "$fish_config"
-    
-    # バックアップから復元
-    if [ -n "$BACKUP_DIR" ] && [ -f "$BACKUP_DIR/config.fish" ]; then
-        echo "fish設定ファイルをバックアップから復元しています..."
-        mv "$BACKUP_DIR/config.fish" "$fish_config"
-    fi
-fi
+remove_installed "$DOTFILES_DIR/config.fish" "$HOME/.config/fish/config.fish"
+remove_installed "$DOTFILES_DIR/fish_plugins" "$HOME/.config/fish/fish_plugins"
 
-# otp.fishの特別な処理
-otp_fish="$HOME/.config/fish/functions/otp.fish"
-if [ -L "$otp_fish" ]; then
-    echo "otp.fishのシンボリックリンクを削除しています..."
-    rm "$otp_fish"
-
-    # バックアップから復元
-    if [ -n "$BACKUP_DIR" ] && [ -f "$BACKUP_DIR/otp.fish" ]; then
-        echo "otp.fishをバックアップから復元しています..."
-        mv "$BACKUP_DIR/otp.fish" "$otp_fish"
-    fi
-fi
+# otp.fish はシークレットを書き込んで使うため、テンプレートのままの場合だけ削除される
+remove_installed "$DOTFILES_DIR/otp.fish" "$HOME/.config/fish/functions/otp.fish"
 
 # 空になったバックアップディレクトリを削除
 if [ -n "$BACKUP_DIR" ] && [ -d "$BACKUP_DIR" ]; then
