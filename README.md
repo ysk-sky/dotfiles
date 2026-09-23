@@ -12,7 +12,6 @@
 - `.bashrc` - Bash の設定
 - `.claude/` - Claude Code の共通設定（詳細は [.claude/README.md](.claude/README.md)）
 - `install.sh` / `uninstall.sh` - dotfiles のインストール・アンインストール
-- `dotfilesLink.sh` - シンボリックリンク作成スクリプト（レガシー）
 
 ## インストール
 
