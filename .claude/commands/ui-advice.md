@@ -1,5 +1,5 @@
 ---
-allowed-tools: WebFetch, mcp__contex7__search
+allowed-tools: WebFetch, mcp__context7__resolve-library-id, mcp__context7__query-docs
 description: Provides UI/UX design pattern advice and generates text wireframes
 ---
 
@@ -22,7 +22,7 @@ Analyze the user's UI/UX design requirements and provide:
 - Consider usability, accessibility, and current trends
 - Create wireframes that are simple yet easy to understand
 - Include implementation complexity for each pattern
-- Given that users primarily use Mantine, use the mcp__contex7__search tool to retrieve latest Mantine component information and analyze implementation feasibility
+- Given that users primarily use Mantine, use Context7 (resolve-library-id, then query-docs) to retrieve the latest Mantine component information and analyze implementation feasibility
 
 ### Wireframe Creation Rules:
 

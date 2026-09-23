@@ -91,22 +91,7 @@
     ],
     "defaultMode": "auto"
   },
-  "sandbox": {
-    "enabled": true,
-    "filesystem": {
-      "denyRead": [
-        "~/**/.env",
-        "~/**/.env.*"
-      ]
-    },
-    "credentials": {
-      "files": [
-        { "path": "~/.ssh", "mode": "deny" },
-        { "path": "~/.aws", "mode": "deny" }
-      ]
-    }
-  },
-  "model": "sonnet",
+  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.js"
@@ -126,7 +111,28 @@
       }
     }
   },
-  "effortLevel": "high",
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "denyRead": [
+        "~/**/.env",
+        "~/**/.env.*"
+      ]
+    },
+    "credentials": {
+      "files": [
+        {
+          "path": "~/.ssh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.aws",
+          "mode": "deny"
+        }
+      ]
+    }
+  },
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "agentPushNotifEnabled": true
 }
