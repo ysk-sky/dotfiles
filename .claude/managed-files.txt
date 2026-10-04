@@ -7,3 +7,4 @@ hooks/block-user-email.sh
 commands/dependabot-check.md
 commands/pr.md
 commands/ui-advice.md
+skills/clean-refactor/SKILL.md

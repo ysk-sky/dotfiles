@@ -16,6 +16,9 @@ Claude Code のユーザー設定（`~/.claude`）のうち、全プロジェク
 │   ├── dependabot-check.md  # /dependabot-check: Dependabot アラートの解決方針を分析
 │   ├── pr.md                # /pr: PR 本文を生成し、承認後に作成・更新
 │   └── ui-advice.md         # /ui-advice: UI パターン提案とテキストワイヤーフレーム
+├── skills/
+│   └── clean-refactor/
+│       └── SKILL.md         # /clean-refactor: リーダブルコード・クリーンアーキテクチャでレビューし、依頼があれば修正（中断しても再開可）
 ├── managed-files.txt      # install.sh / uninstall.sh が扱うファイルの一覧
 ├── install.sh             # ~/.claude へのインストール
 ├── uninstall.sh           # ~/.claude からの削除
