@@ -10,12 +10,11 @@ Claude Code のユーザー設定（`~/.claude`）のうち、全プロジェク
 ├── CLAUDE.md              # 全プロジェクト共通の指示（日本語出力・TDD・コミット承認など）
 ├── settings.json          # permissions / sandbox / model / effortLevel などの設定
 ├── statusline.js          # ステータスライン表示スクリプト
-├── agents/
-│   └── serena.md          # serena-expert サブエージェント（Serena MCP で実装を進める）
+├── hooks/
+│   └── block-user-email.sh  # メールアドレスを外部へ送るツール呼び出しを止める PreToolUse フック
 ├── commands/
 │   ├── dependabot-check.md  # /dependabot-check: Dependabot アラートの解決方針を分析
 │   ├── pr.md                # /pr: PR 本文を生成し、承認後に作成・更新
-│   ├── serena.md            # /serena: Serena MCP を使った開発タスク
 │   └── ui-advice.md         # /ui-advice: UI パターン提案とテキストワイヤーフレーム
 ├── managed-files.txt      # install.sh / uninstall.sh が扱うファイルの一覧
 ├── install.sh             # ~/.claude へのインストール
@@ -27,9 +26,12 @@ Claude Code のユーザー設定（`~/.claude`）のうち、全プロジェク
 ## 設定方針（Claude Opus 5.5 前提）
 
 - `model` は `opus` エイリアスで、現行の Opus（Opus 5.5）を使います。
-- `effortLevel` は `medium` にしています。Opus 5.5 は同じ effort でも以前の Opus より多く考えるため、API の既定値と同じ `medium` から始め、難しいタスクだけ `/effort` で `high` 以上に上げます。
+- `effortLevel` の既定は `medium` ですが、Opus 5.5 だけは `modelSettings` で `high` にしています。
 - `CLAUDE.md`・エージェント・コマンドには、モデルが言われなくてもできる一般論や「N 回考える」といった思考量の指定を書きません。長く細かい指示は思考コストを増やし、かえって品質を下げるためです。守ってほしいルールだけを、理由と一緒に書きます。
-- コミットや PR への Claude の署名は、`settings.json` の `attribution` を空にしたうえで `CLAUDE.md` でも禁止しています。
+- コミットや PR への Claude の署名は、`settings.json` の `attribution` を空にし、`sessionUrl` も切ったうえで `CLAUDE.md` でも禁止しています。
+- ユーザーのメールアドレスを外部へ送る事故の再発防止に、`hooks/block-user-email.sh` を PreToolUse フックとして使います。公開リポジトリなので、アドレスは直書きせず `git config --global user.email` から読みます。
+- コード理解には、Serena MCP ではなく公式の LSP プラグイン（`pyright-lsp`・`typescript-lsp`）を使います。同じ言語サーバーを標準ツールとして使えるためです。言語サーバー本体は `npm install -g pyright typescript-language-server typescript` で入れます。
+- プラグインは `enabledPlugins` で管理しますが、インストール自体は `/plugin` で行います（`install.sh` はプラグインを入れません）。
 
 ## インストール
 
@@ -60,4 +62,3 @@ Claude Code のユーザー設定（`~/.claude`）のうち、全プロジェク
 ## 参考リンク
 
 * [社内で「え、そんなことできるの？」と話題になった Claude Code Custom slash commands の実践活用](https://zenn.dev/hacobu/articles/d4a194b95aacd5) - Hacobuテックブログ
-* [Claude Codeを10倍賢くする無料ツール「Serena」の威力とトークン効率化術](https://zenn.dev/sc30gsw/articles/ff81891959aaef) - Zenn

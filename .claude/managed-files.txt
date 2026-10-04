@@ -3,8 +3,7 @@
 CLAUDE.md
 settings.json
 statusline.js
-agents/serena.md
+hooks/block-user-email.sh
 commands/dependabot-check.md
 commands/pr.md
-commands/serena.md
 commands/ui-advice.md

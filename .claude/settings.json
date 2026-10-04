@@ -2,7 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "attribution": {
     "commit": "",
-    "pr": ""
+    "pr": "",
+    "sessionUrl": false
   },
   "permissions": {
     "allow": [
@@ -92,16 +93,28 @@
     "defaultMode": "auto"
   },
   "model": "opus",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|WebFetch|WebSearch|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/block-user-email.sh"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.js"
   },
   "enabledPlugins": {
-    "hookify@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "claude-mem@thedotmack": true,
-    "superpowers@claude-plugins-official": true
+    "claude-mem@thedotmack": false,
+    "superpowers@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "thedotmack": {
@@ -112,7 +125,7 @@
     }
   },
   "sandbox": {
-    "enabled": true,
+    "enabled": false,
     "filesystem": {
       "denyRead": [
         "~/**/.env",
@@ -133,6 +146,11 @@
     }
   },
   "effortLevel": "medium",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
   "tui": "fullscreen",
   "agentPushNotifEnabled": true
 }

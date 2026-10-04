@@ -5,7 +5,8 @@ const path = require('path');
 const readline = require('readline');
 
 // Constants
-const COMPACTION_THRESHOLD = 200000 * 0.8
+// Claude Code が context_window を渡さない古い版のときだけ使う（Opus 5.5 は 1M）
+const DEFAULT_CONTEXT_WINDOW = 1000000
 
 // Read JSON from stdin
 let input = '';
@@ -44,8 +45,13 @@ process.stdin.on('end', async () => {
       }
     }
 
-    // Calculate percentage
-    const percentage = Math.min(100, Math.round((totalTokens / COMPACTION_THRESHOLD) * 100));
+    // Calculate percentage against the model's real context window (same basis as /context)
+    // Claude Code が今のモデルに合わせて計算した使用率があれば、それをそのまま使う
+    const contextWindow = data.context_window?.context_window_size || DEFAULT_CONTEXT_WINDOW;
+    const reported = data.context_window?.used_percentage;
+    const percentage = typeof reported === 'number'
+      ? Math.min(100, Math.round(reported))
+      : Math.min(100, Math.round((totalTokens / contextWindow) * 100));
 
     // Format token display
     const tokenDisplay = formatTokenCount(totalTokens);
