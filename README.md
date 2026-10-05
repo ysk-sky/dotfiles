@@ -7,7 +7,7 @@
 - `config.fish` - Fish shell の設定（`~/.config/fish/config.fish`）
 - `fish_plugins` - fisher で入れる Fish プラグインの一覧
 - `otp.fish` - TOTP のワンタイムパスワードを生成してクリップボードにコピーする Fish 関数
-- `.Brewfile` - Homebrew パッケージ・アプリ・VSCode 拡張の一覧
+- `.Brewfile` - Homebrew パッケージ・アプリ・VSCode 拡張・Go / npm のツールの一覧
 - `.vimrc` / `.vim/` - Vim の設定と NeoBundle プラグイン
 - `.bashrc` - Bash の設定
 - `.claude/` - Claude Code の共通設定（詳細は [.claude/README.md](.claude/README.md)）
